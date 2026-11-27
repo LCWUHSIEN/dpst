@@ -92,7 +92,7 @@
       <a href="#menu" class="hover:text-ember-500 transition">線上點餐</a>
       <a href="#gift" class="hover:text-ember-500 transition">冷凍禮盒</a>
       <a href="#locations" class="hover:text-ember-500 transition">門市據點</a>
-      <a href="#booking" class="hover:text-ember-500 transition">預約時段</a>
+      <a href="#booking" data-open-booking class="hover:text-ember-500 transition">預約時段</a>
       <a href="#contact" class="hover:text-ember-500 transition">聯絡我們</a>
     </nav>
 
@@ -101,6 +101,9 @@
       <button id="cart-btn" class="relative w-10 h-10 grid place-items-center rounded-full hover:bg-wood-100/60 transition cart-icon" aria-label="開啟購物車">
         <i data-lucide="shopping-bag" class="w-5 h-5"></i>
         <span id="cart-badge" class="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1 rounded-full bg-ember-500 text-white text-xs font-bold grid place-items-center hidden">0</span>
+      </button>
+      <button type="button" data-open-booking class="inline-flex items-center gap-1.5 bg-white/90 hover:bg-white text-ember-700 border border-ember-500 text-sm font-medium w-10 h-10 sm:w-auto sm:h-auto sm:px-5 sm:py-2.5 justify-center rounded-full transition shadow" aria-label="預約時段">
+        <i data-lucide="calendar-check" class="w-4 h-4"></i><span class="hidden sm:inline">預約時段</span>
       </button>
       <a href="#menu" class="hidden sm:inline-flex items-center gap-1.5 bg-ember-500 hover:bg-ember-600 text-white text-sm font-medium px-5 py-2.5 rounded-full transition shadow">
         立即點餐 <i data-lucide="arrow-right" class="w-4 h-4"></i>
@@ -119,7 +122,7 @@
       <a href="#menu" class="py-3 border-b border-wood-100">線上點餐</a>
       <a href="#gift" class="py-3 border-b border-wood-100">冷凍禮盒</a>
       <a href="#locations" class="py-3 border-b border-wood-100">門市據點</a>
-      <a href="#booking" class="py-3 border-b border-wood-100">預約時段</a>
+      <a href="#booking" data-open-booking class="py-3 border-b border-wood-100">預約時段</a>
       <a href="#contact" class="py-3 border-b border-wood-100">聯絡我們</a>
       <a href="#menu" class="mt-3 mb-1 text-center bg-ember-500 text-white font-medium py-3 rounded-full">立即點餐</a>
     </nav>
@@ -283,41 +286,14 @@
   </section>
 
   <!-- ============ BOOKING ============ -->
-  <section id="booking" class="py-20 sm:py-28">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6">
-      <div class="text-center reveal">
-        <p class="text-ember-600 tracking-[.3em] text-sm mb-3">RESERVATION</p>
-        <h2 class="font-serif font-black text-3xl sm:text-4xl">預約時段</h2>
-        <p class="mt-4 text-wood-600 max-w-xl mx-auto">想預約大量訂單、聚餐或到店洽談？選擇方便的時間，我們會為你保留。</p>
-      </div>
-      <div class="mt-10 grid md:grid-cols-5 gap-6 items-stretch reveal">
-        <div class="md:col-span-3 bg-white rounded-2xl border border-wood-200 shadow-sm overflow-hidden">
-          <div class="bg-wood-800 text-cream px-6 py-4 flex items-center gap-2">
-            <i data-lucide="calendar-days" class="w-5 h-5 text-ember-400"></i>
-            <span class="font-bold" id="booking-month"></span>
-          </div>
-          <div class="p-5">
-            <div class="grid grid-cols-7 text-center text-xs text-wood-400 mb-2">
-              <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
-            </div>
-            <div id="booking-cal" class="grid grid-cols-7 gap-1 text-center text-sm"></div>
-            <p class="mt-4 text-xs text-wood-400">點選任一日期，前往 Google 日曆選擇可預約的時段。</p>
-          </div>
-        </div>
-        <div class="md:col-span-2 bg-wood-50 rounded-2xl border border-wood-200 p-6 flex flex-col justify-between">
-          <div>
-            <h3 class="font-serif font-bold text-xl mb-3">線上預約</h3>
-            <ul class="space-y-3 text-sm text-wood-600">
-              <li class="flex gap-2"><i data-lucide="clock" class="w-4 h-4 mt-0.5 text-ember-500 shrink-0"></i>即時查看可預約時段</li>
-              <li class="flex gap-2"><i data-lucide="mail-check" class="w-4 h-4 mt-0.5 text-ember-500 shrink-0"></i>預約後自動寄送 Email 確認</li>
-              <li class="flex gap-2"><i data-lucide="calendar-plus" class="w-4 h-4 mt-0.5 text-ember-500 shrink-0"></i>可加入你的 Google 日曆提醒</li>
-            </ul>
-          </div>
-          <a href="https://calendar.app.google/srPKBdVbXD9dVap39" target="_blank" rel="noopener" class="mt-6 inline-flex items-center justify-center gap-2 bg-ember-500 hover:bg-ember-600 text-white font-medium py-3.5 rounded-full transition">
-            <i data-lucide="calendar-check" class="w-4 h-4"></i>預約時段
-          </a>
-        </div>
-      </div>
+  <section id="booking" class="py-16 sm:py-20">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 text-center reveal">
+      <p class="text-ember-600 tracking-[.3em] text-sm mb-3">RESERVATION</p>
+      <h2 class="font-serif font-black text-3xl sm:text-4xl">預約時段</h2>
+      <p class="mt-4 text-wood-600">想預約大量訂單、聚餐或到店洽談？選擇方便的日期與時段，我們會為你保留。</p>
+      <button type="button" data-open-booking class="mt-8 inline-flex items-center gap-2 bg-ember-500 hover:bg-ember-600 text-white font-medium px-8 py-3.5 rounded-full transition shadow">
+        <i data-lucide="calendar-check" class="w-4 h-4"></i>選擇日期與時段
+      </button>
     </div>
   </section>
 
@@ -496,6 +472,39 @@
 </div>
 
 <!-- ============ Info Modal (privacy / terms) ============ -->
+<!-- Booking modal -->
+<div id="booking-modal" class="fixed inset-0 z-[92] hidden items-end sm:items-center justify-center p-0 sm:p-4" role="dialog" aria-modal="true" aria-labelledby="booking-title">
+  <div id="booking-backdrop" class="absolute inset-0 bg-wood-900/70 backdrop-blur-sm"></div>
+  <div class="relative bg-cream w-full sm:max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl shadow-2xl">
+    <div class="sticky top-0 bg-cream border-b border-wood-200 px-6 py-4 flex items-center justify-between z-10">
+      <h2 id="booking-title" class="font-serif font-bold text-lg">預約時段</h2>
+      <button id="booking-close" type="button" class="w-9 h-9 grid place-items-center rounded-full hover:bg-wood-100" aria-label="關閉"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <div class="p-6 space-y-6">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <button id="bk-prev" type="button" class="w-9 h-9 grid place-items-center rounded-full hover:bg-wood-100 disabled:opacity-30 disabled:cursor-not-allowed" aria-label="上個月"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+          <span id="bk-month" class="font-bold"></span>
+          <button id="bk-next" type="button" class="w-9 h-9 grid place-items-center rounded-full hover:bg-wood-100 disabled:opacity-30 disabled:cursor-not-allowed" aria-label="下個月"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+        </div>
+        <div class="grid grid-cols-7 text-center text-xs text-wood-400 mb-1"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+        <div id="bk-days" class="grid grid-cols-7 gap-1 text-center text-sm"></div>
+      </div>
+      <div>
+        <h3 class="text-sm font-bold mb-3">選擇時段 <span id="bk-date-label" class="font-normal text-wood-500"></span></h3>
+        <div id="bk-slots" class="grid grid-cols-3 sm:grid-cols-4 gap-2"></div>
+      </div>
+      <div class="border-t border-wood-200 pt-5">
+        <p id="bk-summary" class="text-sm text-wood-600 mb-3">請先選擇日期與時段。</p>
+        <a id="bk-confirm" href="#" target="_blank" rel="noopener" aria-disabled="true" class="flex items-center justify-center gap-2 w-full bg-ember-500 hover:bg-ember-600 text-white font-medium py-3.5 rounded-full transition pointer-events-none opacity-40">
+          <i data-lucide="calendar-check" class="w-4 h-4"></i>前往確認預約
+        </a>
+        <p class="mt-3 text-xs text-wood-400">將開啟 Google 日曆預約頁，請在該頁選擇相同的日期與時段完成預約，系統會寄送 Email 確認。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="info-modal" class="fixed inset-0 z-[95] hidden items-center justify-center p-4" role="dialog" aria-modal="true">
   <div id="info-backdrop" class="absolute inset-0 bg-wood-900/70"></div>
   <div class="relative bg-cream rounded-2xl p-6 max-w-md w-full shadow-2xl">
@@ -946,19 +955,78 @@
   observeReveal(); icons();
 })();
 
-  // ---- Booking calendar ----
+  // ---- Booking modal ----
   (function () {
-    var el = document.getElementById('booking-cal');
-    if (!el) return;
-    var now = new Date(), y = now.getFullYear(), m = now.getMonth(), today = now.getDate();
-    document.getElementById('booking-month').textContent = y + ' 年 ' + (m + 1) + ' 月';
-    var first = new Date(y, m, 1).getDay(), days = new Date(y, m + 1, 0).getDate(), h = '';
-    for (var i = 0; i < first; i++) h += '<span></span>';
-    for (var d = 1; d <= days; d++) {
-      if (d < today) h += '<span class="py-2 rounded-lg text-wood-300">' + d + '</span>';
-      else h += '<a href="https://calendar.app.google/srPKBdVbXD9dVap39" target="_blank" rel="noopener" class="py-2 rounded-lg hover:bg-ember-500 hover:text-white transition ' + (d === today ? 'bg-wood-100 ring-1 ring-ember-500 font-bold' : '') + '" aria-label="預約 ' + (m + 1) + ' 月 ' + d + ' 日">' + d + '</a>';
+    var BOOKING_URL = 'https://calendar.app.google/srPKBdVbXD9dVap39';
+    var SLOTS = ['10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00'];
+    var modal = document.getElementById('booking-modal');
+    var daysEl = document.getElementById('bk-days'), slotsEl = document.getElementById('bk-slots');
+    var now = new Date(), today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    var view = new Date(today.getFullYear(), today.getMonth(), 1), selDate = null, selSlot = null;
+    var base = 'py-2.5 rounded-lg transition ';
+
+    function fmt(d) { return d.getFullYear() + '/' + (d.getMonth() + 1) + '/' + d.getDate() + '（週' + '日一二三四五六'.charAt(d.getDay()) + '）'; }
+
+    function renderDays() {
+      document.getElementById('bk-month').textContent = view.getFullYear() + ' 年 ' + (view.getMonth() + 1) + ' 月';
+      document.getElementById('bk-prev').disabled = view.getTime() <= new Date(today.getFullYear(), today.getMonth(), 1).getTime();
+      var first = view.getDay(), n = new Date(view.getFullYear(), view.getMonth() + 1, 0).getDate(), h = '';
+      for (var i = 0; i < first; i++) h += '<span></span>';
+      for (var d = 1; d <= n; d++) {
+        var dt = new Date(view.getFullYear(), view.getMonth(), d), past = dt < today;
+        var sel = selDate && selDate.getTime() === dt.getTime();
+        var cls = base + (past ? 'text-wood-300 cursor-not-allowed' : sel ? 'bg-ember-500 text-white font-bold' : 'hover:bg-wood-100' + (dt.getTime() === today.getTime() ? ' ring-1 ring-ember-500 font-bold' : ''));
+        h += '<button type="button" class="' + cls + '" data-day="' + d + '"' + (past ? ' disabled' : '') + ' aria-pressed="' + (sel ? 'true' : 'false') + '">' + d + '</button>';
+      }
+      daysEl.innerHTML = h;
     }
-    el.innerHTML = h;
+
+    function renderSlots() {
+      document.getElementById('bk-date-label').textContent = selDate ? '・' + fmt(selDate) : '';
+      if (!selDate) { slotsEl.innerHTML = '<p class="col-span-full text-sm text-wood-400">請先點選上方日期。</p>'; return; }
+      var isToday = selDate.getTime() === today.getTime(), h = '';
+      SLOTS.forEach(function (t) {
+        var past = isToday && parseInt(t, 10) <= now.getHours();
+        var sel = selSlot === t;
+        h += '<button type="button" data-slot="' + t + '"' + (past ? ' disabled' : '') + ' aria-pressed="' + (sel ? 'true' : 'false') + '" class="py-2.5 rounded-xl border text-sm transition ' +
+          (past ? 'border-wood-100 text-wood-300 cursor-not-allowed' : sel ? 'bg-ember-500 border-ember-500 text-white font-bold' : 'border-wood-200 bg-white hover:border-ember-500') + '">' + t + '</button>';
+      });
+      slotsEl.innerHTML = h;
+    }
+
+    function renderSummary() {
+      var a = document.getElementById('bk-confirm'), t = document.getElementById('bk-summary'), ok = selDate && selSlot;
+      t.textContent = ok ? '你選擇：' + fmt(selDate) + ' ' + selSlot : '請先選擇日期與時段。';
+      a.href = ok ? BOOKING_URL : '#';
+      a.setAttribute('aria-disabled', ok ? 'false' : 'true');
+      a.classList.toggle('pointer-events-none', !ok);
+      a.classList.toggle('opacity-40', !ok);
+    }
+
+    function open() {
+      modal.classList.remove('hidden'); modal.classList.add('flex'); document.body.style.overflow = 'hidden';
+      renderDays(); renderSlots(); renderSummary();
+      if (window.lucide) lucide.createIcons();
+    }
+    function close() { modal.classList.add('hidden'); modal.classList.remove('flex'); document.body.style.overflow = ''; }
+
+    document.addEventListener('click', function (e) {
+      var o = e.target.closest('[data-open-booking]');
+      if (o) {
+        e.preventDefault();
+        var mn = document.getElementById('mobile-nav'); if (mn) mn.classList.add('hidden');
+        open(); return;
+      }
+      if (modal.classList.contains('hidden')) return;
+      if (e.target.closest('#booking-close') || e.target.id === 'booking-backdrop') { close(); return; }
+      if (e.target.closest('#bk-prev')) { view = new Date(view.getFullYear(), view.getMonth() - 1, 1); renderDays(); return; }
+      if (e.target.closest('#bk-next')) { view = new Date(view.getFullYear(), view.getMonth() + 1, 1); renderDays(); return; }
+      var d = e.target.closest('[data-day]');
+      if (d) { selDate = new Date(view.getFullYear(), view.getMonth(), +d.dataset.day); selSlot = null; renderDays(); renderSlots(); renderSummary(); return; }
+      var sl = e.target.closest('[data-slot]');
+      if (sl) { selSlot = sl.dataset.slot; renderSlots(); renderSummary(); }
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !modal.classList.contains('hidden')) close(); });
   })();
 </script>
 </body>
