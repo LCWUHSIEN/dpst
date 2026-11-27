@@ -553,6 +553,9 @@
           </div>
         </div>
 
+        <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" class="absolute -left-[9999px] w-px h-px opacity-0" />
+        <p id="checkout-error" class="hidden text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3" role="alert"></p>
+
         <!-- summary -->
         <div class="bg-white rounded-2xl border border-wood-200 p-5">
           <h3 class="font-bold text-sm mb-3">訂單明細</h3>
@@ -565,8 +568,8 @@
         </div>
       </div>
       <div class="px-6 pb-6">
-        <button type="submit" class="w-full bg-ember-500 hover:bg-ember-600 text-white font-medium py-4 rounded-full transition shadow">送出訂單</button>
-        <p class="text-xs text-wood-400 text-center mt-3">此為展示網站，不會產生實際扣款或訂單。</p>
+        <button id="checkout-submit" type="submit" class="w-full bg-ember-500 hover:bg-ember-600 disabled:bg-wood-300 disabled:cursor-wait text-white font-medium py-4 rounded-full transition shadow">送出訂單</button>
+        <p id="checkout-note" class="text-xs text-wood-400 text-center mt-3">此為展示網站，不會產生實際扣款或訂單。</p>
       </div>
     </form>
 
@@ -656,6 +659,10 @@
   ];
 
   var SHIPPING_FEE = 60, FREE_SHIPPING = 500;
+
+  /* 訂單串接 Google Sheet：貼上 Apps Script 部署後的網頁應用程式網址（結尾為 /exec）。
+     留空則維持展示模式（不送出訂單）。設定方式見 gas/README.md */
+  var ORDER_API_URL = '';
 
   /* ================= Helpers ================= */
   var $ = function (s, r) { return (r || document).querySelector(s); };
@@ -886,7 +893,9 @@
   /* ================= Checkout ================= */
   var modal = $('#checkout-modal'), form = $('#checkout-form'), success = $('#checkout-success');
   var TYPE_LABEL = { 'dine-in': '內用', 'takeout': '外帶', 'delivery': '宅配' };
+  var pendingRid = null;
   var getType = function () { return form.orderType.value; };
+  if (ORDER_API_URL) $('#checkout-note').textContent = '送出後訂單會傳送給門市備餐，請保持手機暢通。';
   var shippingFor = function (type) { var s = subtotal(); return (type === 'delivery' && s > 0 && s < FREE_SHIPPING) ? SHIPPING_FEE : 0; };
 
   $('#f-store').innerHTML = STORES.map(function (s) { return '<option value="' + s.id + '">' + s.name + '｜' + s.addr + '</option>'; }).join('');
@@ -941,20 +950,54 @@
     if (type === 'delivery') check(form.address, !form.address.value.trim());
     if (!ok) { firstBad.focus(); return; }
 
-    var total = subtotal() + shippingFor(type);
-    var id = 'GT' + new Date().toISOString().slice(2, 10).replace(/-/g, '') + '-' + Math.floor(1000 + Math.random() * 9000);
     var st = STORES.filter(function (s) { return s.id === form.store.value; })[0];
-    $('#s-id').textContent = id;
-    $('#s-type').textContent = TYPE_LABEL[type];
-    $('#s-where-label').textContent = type === 'delivery' ? '配送地址' : (type === 'dine-in' ? '內用門市' : '取餐門市');
-    $('#s-where').textContent = type === 'delivery' ? form.address.value.trim() : st.name + '（' + st.addr + '）';
-    $('#s-eta').textContent = type === 'delivery' ? '約 45–60 分鐘' : (type === 'dine-in' ? '入座後約 10 分鐘' : '約 15 分鐘');
-    $('#s-total').textContent = money(total);
+    var localTotal = subtotal() + shippingFor(type);
 
-    cart = []; save(); renderCart(); form.reset();
-    form.classList.add('hidden'); success.classList.remove('hidden');
-    modal.firstElementChild.nextElementSibling.scrollTop = 0;
-    icons();
+    function showSuccess(id, total, where, eta) {
+      $('#s-id').textContent = id;
+      $('#s-type').textContent = TYPE_LABEL[type];
+      $('#s-where-label').textContent = type === 'delivery' ? '配送地址' : (type === 'dine-in' ? '內用門市' : '取餐門市');
+      $('#s-where').textContent = where;
+      $('#s-eta').textContent = eta;
+      $('#s-total').textContent = money(total);
+      cart = []; save(); renderCart(); form.reset(); pendingRid = null;
+      form.classList.add('hidden'); success.classList.remove('hidden');
+      modal.firstElementChild.nextElementSibling.scrollTop = 0;
+      icons();
+    }
+    var etaText = type === 'delivery' ? '約 45–60 分鐘' : (type === 'dine-in' ? '入座後約 10 分鐘' : '約 15 分鐘');
+    var whereText = type === 'delivery' ? form.address.value.trim() : st.name + '（' + st.addr + '）';
+
+    /* 展示模式：未設定 ORDER_API_URL 時，只在本機產生訂單編號 */
+    if (!ORDER_API_URL) {
+      var id = 'GT' + new Date().toISOString().slice(2, 10).replace(/-/g, '') + '-' + Math.floor(1000 + Math.random() * 9000);
+      showSuccess(id, localTotal, whereText, etaText);
+      return;
+    }
+
+    /* 正式模式：送到 Google Apps Script，寫入 Google Sheet */
+    var payload = {
+      requestId: pendingRid || (pendingRid = (window.crypto && crypto.randomUUID ? crypto.randomUUID() : 'r' + Date.now() + Math.random().toString(16).slice(2))),
+      orderType: type, store: form.store.value, name: form.name.value, phone: form.phone.value, email: form.email.value,
+      address: form.address.value, note: form.note.value, website: form.website.value,
+      items: cart.map(function (i) { return { id: i.id, qty: i.qty }; })
+    };
+    var btn = $('#checkout-submit'), errBox = $('#checkout-error');
+    errBox.classList.add('hidden'); btn.disabled = true; btn.textContent = '送出中…';
+    var ctl = window.AbortController ? new AbortController() : null, timer = setTimeout(function () { if (ctl) ctl.abort(); }, 25000);
+    fetch(ORDER_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload), signal: ctl ? ctl.signal : undefined })
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (!res || !res.ok) throw new Error(res && res.error ? res.error : '訂單送出失敗');
+        showSuccess(res.orderId, res.total, res.where || whereText, res.eta || etaText);
+      })
+      .catch(function (err) {
+        errBox.textContent = (err && err.name === 'AbortError') ? '連線逾時，訂單可能已送出。請再按一次「送出訂單」（不會重複建立），或來電門市確認。'
+          : (err && err.message && !/Failed to fetch|NetworkError|Load failed/i.test(err.message) ? err.message : '網路連線異常，請稍後再按一次「送出訂單」（不會重複建立訂單）。');
+        errBox.classList.remove('hidden');
+        errBox.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      })
+      .then(function () { clearTimeout(timer); btn.disabled = false; btn.textContent = '送出訂單'; });
   });
 
   /* ================= Locations ================= */
