@@ -1,0 +1,17 @@
+{
+  "name": "焙香鍋貼",
+  "short_name": "焙香鍋貼",
+  "description": "金黃酥脆，傳承手藝的極致美味。線上點餐、冷凍禮盒、門市據點與預約時段。",
+  "lang": "zh-Hant",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#2a1b11",
+  "theme_color": "#3f2a1b",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

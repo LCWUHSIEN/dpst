@@ -6,6 +6,16 @@
 <title>焙香鍋貼 | 金黃酥脆，傳承手藝的極致美味</title>
 <meta name="description" content="焙香鍋貼：30 年老店手藝，台灣在地豬肉、每日現包、黃金煎脆比例。線上點餐、冷凍禮盒、門市據點一站完成。" />
 
+<!-- PWA -->
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#3f2a1b" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="焙香鍋貼" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+
 <!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -1332,6 +1342,11 @@
   }
   if (document.readyState === 'complete') init(); else window.addEventListener('load', init);
 })();
+
+/* ================= PWA：註冊 Service Worker ================= */
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+}
 </script>
 </body>
 </html>
