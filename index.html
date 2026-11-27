@@ -92,6 +92,7 @@
       <a href="#menu" class="hover:text-ember-500 transition">線上點餐</a>
       <a href="#gift" class="hover:text-ember-500 transition">冷凍禮盒</a>
       <a href="#locations" class="hover:text-ember-500 transition">門市據點</a>
+      <a href="#booking" class="hover:text-ember-500 transition">預約時段</a>
       <a href="#contact" class="hover:text-ember-500 transition">聯絡我們</a>
     </nav>
 
@@ -118,6 +119,7 @@
       <a href="#menu" class="py-3 border-b border-wood-100">線上點餐</a>
       <a href="#gift" class="py-3 border-b border-wood-100">冷凍禮盒</a>
       <a href="#locations" class="py-3 border-b border-wood-100">門市據點</a>
+      <a href="#booking" class="py-3 border-b border-wood-100">預約時段</a>
       <a href="#contact" class="py-3 border-b border-wood-100">聯絡我們</a>
       <a href="#menu" class="mt-3 mb-1 text-center bg-ember-500 text-white font-medium py-3 rounded-full">立即點餐</a>
     </nav>
@@ -275,6 +277,45 @@
             </div>
             <a id="map-nav" href="#" target="_blank" rel="noopener" class="absolute bottom-3 left-3 bg-ember-500 text-white text-sm font-medium px-4 py-2 rounded-full shadow-md flex items-center gap-1.5 hover:bg-ember-600"><i data-lucide="navigation" class="w-4 h-4"></i>開啟導航</a>
           </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BOOKING ============ -->
+  <section id="booking" class="py-20 sm:py-28">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6">
+      <div class="text-center reveal">
+        <p class="text-ember-600 tracking-[.3em] text-sm mb-3">RESERVATION</p>
+        <h2 class="font-serif font-black text-3xl sm:text-4xl">預約時段</h2>
+        <p class="mt-4 text-wood-600 max-w-xl mx-auto">想預約大量訂單、聚餐或到店洽談？選擇方便的時間，我們會為你保留。</p>
+      </div>
+      <div class="mt-10 grid md:grid-cols-5 gap-6 items-stretch reveal">
+        <div class="md:col-span-3 bg-white rounded-2xl border border-wood-200 shadow-sm overflow-hidden">
+          <div class="bg-wood-800 text-cream px-6 py-4 flex items-center gap-2">
+            <i data-lucide="calendar-days" class="w-5 h-5 text-ember-400"></i>
+            <span class="font-bold" id="booking-month"></span>
+          </div>
+          <div class="p-5">
+            <div class="grid grid-cols-7 text-center text-xs text-wood-400 mb-2">
+              <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+            </div>
+            <div id="booking-cal" class="grid grid-cols-7 gap-1 text-center text-sm"></div>
+            <p class="mt-4 text-xs text-wood-400">點選任一日期，前往 Google 日曆選擇可預約的時段。</p>
+          </div>
+        </div>
+        <div class="md:col-span-2 bg-wood-50 rounded-2xl border border-wood-200 p-6 flex flex-col justify-between">
+          <div>
+            <h3 class="font-serif font-bold text-xl mb-3">線上預約</h3>
+            <ul class="space-y-3 text-sm text-wood-600">
+              <li class="flex gap-2"><i data-lucide="clock" class="w-4 h-4 mt-0.5 text-ember-500 shrink-0"></i>即時查看可預約時段</li>
+              <li class="flex gap-2"><i data-lucide="mail-check" class="w-4 h-4 mt-0.5 text-ember-500 shrink-0"></i>預約後自動寄送 Email 確認</li>
+              <li class="flex gap-2"><i data-lucide="calendar-plus" class="w-4 h-4 mt-0.5 text-ember-500 shrink-0"></i>可加入你的 Google 日曆提醒</li>
+            </ul>
+          </div>
+          <a href="https://calendar.app.google/srPKBdVbXD9dVap39" target="_blank" rel="noopener" class="mt-6 inline-flex items-center justify-center gap-2 bg-ember-500 hover:bg-ember-600 text-white font-medium py-3.5 rounded-full transition">
+            <i data-lucide="calendar-check" class="w-4 h-4"></i>預約時段
+          </a>
         </div>
       </div>
     </div>
@@ -904,6 +945,21 @@
   renderTabs(); renderMenu(); renderGifts(); renderStores(); renderFaq(); renderCart();
   observeReveal(); icons();
 })();
+
+  // ---- Booking calendar ----
+  (function () {
+    var el = document.getElementById('booking-cal');
+    if (!el) return;
+    var now = new Date(), y = now.getFullYear(), m = now.getMonth(), today = now.getDate();
+    document.getElementById('booking-month').textContent = y + ' 年 ' + (m + 1) + ' 月';
+    var first = new Date(y, m, 1).getDay(), days = new Date(y, m + 1, 0).getDate(), h = '';
+    for (var i = 0; i < first; i++) h += '<span></span>';
+    for (var d = 1; d <= days; d++) {
+      if (d < today) h += '<span class="py-2 rounded-lg text-wood-300">' + d + '</span>';
+      else h += '<a href="https://calendar.app.google/srPKBdVbXD9dVap39" target="_blank" rel="noopener" class="py-2 rounded-lg hover:bg-ember-500 hover:text-white transition ' + (d === today ? 'bg-wood-100 ring-1 ring-ember-500 font-bold' : '') + '" aria-label="預約 ' + (m + 1) + ' 月 ' + d + ' 日">' + d + '</a>';
+    }
+    el.innerHTML = h;
+  })();
 </script>
 </body>
 </html>
