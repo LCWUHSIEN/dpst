@@ -31,6 +31,9 @@
   }
 </script>
 
+<!-- Three.js (3D street) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+
 <!-- Lucide Icons -->
 <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.1/dist/umd/lucide.min.js" onerror="var s=document.createElement('script');s.src='https://unpkg.com/lucide@0.263.1/dist/umd/lucide.min.js';s.onload=function(){window.lucide&&lucide.createIcons()};document.head.appendChild(s)"></script>
 
@@ -66,6 +69,10 @@
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { scrollbar-width: none; }
   /* ===== crowd / street animation ===== */
+  /* 3D street */
+  .street.is-3d { height: 340px; background: transparent; }
+  @media (min-width: 640px) { .street.is-3d { height: 460px; } }
+  .street.is-3d > *:not(canvas) { display: none; }
   .street { position: relative; height: 270px; overflow: hidden; }
   @media (min-width: 640px) { .street { height: 330px; } }
   .walker { position: absolute; left: 0; bottom: var(--b); height: var(--h); z-index: var(--z); color: var(--c);
@@ -1093,6 +1100,237 @@
       cnt.textContent = n;
     }, 3500);
   }
+})();
+
+/* ================= 3D street (Three.js) ================= */
+(function () {
+  function init() {
+    var host = document.querySelector('#street .street');
+    if (!host || !window.THREE) return;
+    var T = THREE, renderer;
+    try { renderer = new T.WebGLRenderer({ antialias: true, alpha: true }); } catch (e) { return; }
+    if (!renderer.getContext()) return;
+
+    var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var canvas = renderer.domElement;
+    canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0';
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    host.classList.add('is-3d');
+    host.appendChild(canvas);
+
+    function rand(a, b) { return a + Math.random() * (b - a); }
+    function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+    function lam(c) { return new T.MeshLambertMaterial({ color: c }); }
+    function basic(c) { return new T.MeshBasicMaterial({ color: c }); }
+    function box(w, h, d, mat, x, y, z) { var m = new T.Mesh(new T.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); return m; }
+    function canvasTex(w, h, draw) {
+      var c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h);
+      var t = new T.CanvasTexture(c); t.anisotropy = 4; return t;
+    }
+
+    var scene = new T.Scene();
+    var camera = new T.PerspectiveCamera(35, 2, 0.1, 120);
+    scene.add(new T.HemisphereLight(0xffe2bd, 0x3f2a1b, 0.8));
+    var sun = new T.DirectionalLight(0xffd9a8, 0.7); sun.position.set(-6, 10, 8); scene.add(sun);
+    var shopLight = new T.PointLight(0xffa24a, 1.2, 15, 2); shopLight.position.set(0, 2.2, -0.4); scene.add(shopLight);
+
+    /* ground */
+    var sideTex = canvasTex(128, 128, function (g, w, h) {
+      g.fillStyle = '#6f4e32'; g.fillRect(0, 0, w, h); g.strokeStyle = '#573b26'; g.lineWidth = 4; g.strokeRect(0, 0, w, h);
+    });
+    sideTex.wrapS = sideTex.wrapT = T.RepeatWrapping; sideTex.repeat.set(50, 3.4);
+    var side = new T.Mesh(new T.PlaneGeometry(80, 5.4), new T.MeshLambertMaterial({ map: sideTex }));
+    side.rotation.x = -Math.PI / 2; side.position.set(0, 0, 0.7); scene.add(side);
+    scene.add(box(80, 0.16, 0.3, lam(0xb8946a), 0, 0.08, 3.55));
+    var road = new T.Mesh(new T.PlaneGeometry(80, 14), lam(0x2a1b11));
+    road.rotation.x = -Math.PI / 2; road.position.set(0, -0.01, 10.7); scene.add(road);
+    for (var i = -13; i <= 13; i++) scene.add(box(1.4, 0.02, 0.12, basic(0x8f6a45), i * 3, 0.01, 10.2));
+
+    /* shop */
+    var shop = new T.Group(); shop.position.set(0, 0, -3); scene.add(shop);
+    shop.add(box(6, 4.2, 2, lam(0x3f2a1b), 0, 2.1, 0));
+    shop.add(box(6.3, 0.25, 2.3, lam(0x2a1b11), 0, 4.32, 0));
+    shop.add(box(0.5, 0.9, 0.5, lam(0x2a1b11), 1.9, 4.9, -0.2));
+    var doorGlow = new T.Mesh(new T.PlaneGeometry(1.2, 2.2), basic(0xffb561)); doorGlow.position.set(0, 1.1, 1.01); shop.add(doorGlow);
+    var wood = lam(0x8f6a45);
+    shop.add(box(0.12, 2.3, 0.12, wood, -0.66, 1.15, 1.04), box(0.12, 2.3, 0.12, wood, 0.66, 1.15, 1.04), box(1.44, 0.12, 0.12, wood, 0, 2.28, 1.04));
+    [-1.9, 1.9].forEach(function (x) {
+      var w = new T.Mesh(new T.PlaneGeometry(1.7, 1.3), basic(0xffd89a)); w.position.set(x, 1.5, 1.01); shop.add(w);
+      shop.add(box(1.82, 0.08, 0.1, wood, x, 0.83, 1.05), box(1.82, 0.08, 0.1, wood, x, 2.17, 1.05), box(0.06, 1.3, 0.08, wood, x, 1.5, 1.05));
+    });
+    var signCtx;
+    var signTex = canvasTex(512, 128, function (g, w, h) { signCtx = g; });
+    function drawSign() {
+      var g = signCtx; g.fillStyle = '#2a1b11'; g.fillRect(0, 0, 512, 128);
+      g.strokeStyle = '#e8782a'; g.lineWidth = 6; g.strokeRect(8, 8, 496, 112);
+      g.fillStyle = '#f59a4a'; g.font = '900 68px "Noto Serif TC", serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText('焙 香 鍋 貼', 256, 68); signTex.needsUpdate = true;
+    }
+    drawSign();
+    if (document.fonts && document.fonts.load) document.fonts.load('900 68px "Noto Serif TC"', '焙香鍋貼').then(drawSign).catch(function () {});
+    var sign = new T.Mesh(new T.PlaneGeometry(3.4, 0.85), new T.MeshBasicMaterial({ map: signTex })); sign.position.set(0, 3.6, 1.03); shop.add(sign);
+    var awnTex = canvasTex(256, 32, function (g) { for (var k = 0; k < 8; k++) { g.fillStyle = k % 2 ? '#fbf7f0' : '#cf5f14'; g.fillRect(k * 32, 0, 32, 32); } });
+    var awning = new T.Mesh(new T.BoxGeometry(6.4, 0.1, 1.4), new T.MeshLambertMaterial({ map: awnTex }));
+    awning.position.set(0, 3.0, 1.6); awning.rotation.x = 0.3; shop.add(awning);
+
+    /* neighbours + skyline */
+    var winMat = basic(0xf5b25e);
+    function building(x, w, h, d, c, z) {
+      var b = box(w, h, d, lam(c), x, h / 2, z); scene.add(b);
+      for (var r = 0; r < Math.floor(h / 1.4); r++) for (var cc = 0; cc < Math.floor(w / 1.6); cc++) {
+        if (Math.random() < 0.55) { var wnd = new T.Mesh(new T.PlaneGeometry(0.6, 0.7), winMat); wnd.position.set(x - w / 2 + 0.9 + cc * 1.6, 1.2 + r * 1.4, z + d / 2 + 0.01); scene.add(wnd); }
+      }
+    }
+    building(-7.4, 7.6, 5.6, 2.6, 0x573b26, -3.3);
+    building(7.4, 7.6, 4.0, 2.6, 0x6f4e32, -3.3);
+    building(-15, 7, 6.4, 2.6, 0x3f2a1b, -3.4);
+    building(15, 7, 5.2, 2.6, 0x3f2a1b, -3.4);
+    [-12, -5, 5, 12, 19, -19].forEach(function (x) { scene.add(box(rand(3, 5), rand(4, 8), 1.5, lam(0x2a1b11), x, 3, -9)); });
+
+    /* lamps */
+    [-5.2, 5.2].forEach(function (x) {
+      scene.add(box(0.08, 3.4, 0.08, lam(0x2a1b11), x, 1.7, 3.2));
+      var bulb = new T.Mesh(new T.SphereGeometry(0.2, 12, 10), basic(0xffd89a)); bulb.position.set(x, 3.5, 3.2); scene.add(bulb);
+    });
+
+    /* steam */
+    var steamTex = canvasTex(64, 64, function (g) {
+      var gr = g.createRadialGradient(32, 32, 2, 32, 32, 30); gr.addColorStop(0, 'rgba(251,247,240,.9)'); gr.addColorStop(1, 'rgba(251,247,240,0)');
+      g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+    });
+    var steams = [];
+    for (var s = 0; s < 5; s++) {
+      var sp = new T.Sprite(new T.SpriteMaterial({ map: steamTex, transparent: true, depthWrite: false }));
+      sp.userData.off = s / 5; sp.visible = true; scene.add(sp); steams.push(sp);
+    }
+
+    /* people */
+    var SHIRTS = [0xe8782a, 0xf3ebdd, 0x8f6a45, 0xcf5f14, 0xd2b88c, 0xa94a10, 0xb8946a, 0xfbf7f0, 0x4f6d7a, 0x7a8f5a];
+    var PANTS = [0x2a1b11, 0x3f2a1b, 0x2f3b4a, 0x573b26];
+    var SKINS = [0xf1c9a5, 0xe3b184, 0xc98f62, 0xa86f48];
+    var G = {
+      leg: new T.BoxGeometry(0.17, 0.85, 0.17), torso: new T.CylinderGeometry(0.2, 0.24, 0.62, 12), arm: new T.BoxGeometry(0.1, 0.55, 0.1),
+      head: new T.SphereGeometry(0.15, 14, 12), hair: new T.SphereGeometry(0.163, 14, 8, 0, Math.PI * 2, 0, Math.PI * 0.55), bag: new T.BoxGeometry(0.22, 0.26, 0.1)
+    };
+    function pmat(c) { return new T.MeshLambertMaterial({ color: c, transparent: true }); }
+    function pivot(mat, geo, x, y, dy) { var p = new T.Group(); p.position.set(x, y, 0); var m = new T.Mesh(geo, mat); m.position.y = dy; p.add(m); return p; }
+    function makePerson(withBag) {
+      var g = new T.Group(), shirt = pmat(pick(SHIRTS)), pants = pmat(pick(PANTS)), skin = pmat(pick(SKINS)), hair = pmat(0x2a1b11), mats = [shirt, pants, skin, hair];
+      var legL = pivot(pants, G.leg, -0.1, 0.85, -0.425), legR = pivot(pants, G.leg, 0.1, 0.85, -0.425);
+      var armL = pivot(shirt, G.arm, -0.29, 1.42, -0.27), armR = pivot(shirt, G.arm, 0.29, 1.42, -0.27);
+      var torso = new T.Mesh(G.torso, shirt); torso.position.y = 1.15;
+      var head = new T.Mesh(G.head, skin); head.position.y = 1.62;
+      var hr = new T.Mesh(G.hair, hair); hr.position.y = 1.63; hr.rotation.x = -0.25;
+      g.add(legL, legR, armL, armR, torso, head, hr);
+      if (withBag) { var bm = pmat(0xcf5f14); mats.push(bm); var bag = new T.Mesh(G.bag, bm); bag.position.set(0.04, -0.6, 0.02); armR.add(bag); }
+      g.userData = { legL: legL, legR: legR, armL: armL, armR: armR, head: head, mats: mats };
+      return g;
+    }
+    function setOpacity(p, o) { p.g.userData.mats.forEach(function (m) { m.opacity = o; }); }
+    function turn(p, tx, dt) {
+      var d = tx - p.g.rotation.y; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2;
+      p.g.rotation.y += d * Math.min(1, dt * 8);
+    }
+
+    var DOORX = 0, DOORZ = -1.9;
+    var people = [];
+    var N = window.innerWidth < 640 ? 11 : 18;
+    function lane(p, initial, dir) {
+      p.state = 'walk'; p.dir = dir || (Math.random() < 0.5 ? 1 : -1);
+      p.x = initial ? rand(-13, 13) : (p.dir > 0 ? -15 : 15); p.z = rand(0.5, 2.9);
+      p.speed = rand(0.95, 1.7); p.willEnter = Math.random() < 0.45; p.enterX = rand(-3.5, 3.5);
+      if (initial && ((p.dir > 0 && p.x > p.enterX) || (p.dir < 0 && p.x < p.enterX))) p.willEnter = false;
+      p.g.visible = true; setOpacity(p, 1);
+      p.g.position.set(p.x, 0, p.z); p.g.rotation.y = p.dir > 0 ? Math.PI / 2 : -Math.PI / 2;
+    }
+    for (var n = 0; n < N; n++) {
+      var p = { g: makePerson(Math.random() < 0.3), ph: Math.random() * 6 }; lane(p, true); scene.add(p.g); people.push(p);
+    }
+    /* queue at the door */
+    var queue = [];
+    [[1.5, 1], [2.25, 1], [3.0, 1], [-1.6, -1]].forEach(function (q, i) {
+      var g = makePerson(i % 2 === 0); g.position.set(q[0], 0, -1.35); g.rotation.y = q[1] > 0 ? -Math.PI / 2 : Math.PI / 2; scene.add(g);
+      queue.push({ g: g, ph: i * 1.3 });
+    });
+
+    function walkPose(p, dt, k) {
+      p.ph += dt * p.speed * 5.2 * (k || 1);
+      var u = p.g.userData, s = Math.sin(p.ph);
+      u.legL.rotation.x = s * 0.7; u.legR.rotation.x = -s * 0.7; u.armL.rotation.x = -s * 0.6; u.armR.rotation.x = s * 0.6;
+      p.g.position.y = Math.abs(Math.cos(p.ph)) * 0.04;
+    }
+    function step(p, tx, tz, dt, sp) {
+      var dx = tx - p.g.position.x, dz = tz - p.g.position.z, dist = Math.hypot(dx, dz);
+      if (dist < 0.06) return true;
+      var m = Math.min(dist, sp * dt);
+      p.g.position.x += dx / dist * m; p.g.position.z += dz / dist * m; turn(p, Math.atan2(dx, dz), dt);
+      return false;
+    }
+    function update(dt) {
+      people.forEach(function (p) {
+        var pos = p.g.position;
+        if (p.state === 'walk') {
+          pos.x += p.dir * p.speed * dt; walkPose(p, dt);
+          if (p.willEnter && ((p.dir > 0 && pos.x >= p.enterX) || (p.dir < 0 && pos.x <= p.enterX))) { p.state = 'approach'; p.tx = DOORX + rand(-0.25, 0.25); }
+          else if (Math.abs(pos.x) > 16) lane(p, false);
+        } else if (p.state === 'approach') {
+          walkPose(p, dt); if (step(p, p.tx, DOORZ, dt, p.speed * 1.05)) { p.state = 'enter'; p.t = 0; }
+        } else if (p.state === 'enter') {
+          p.t += dt; walkPose(p, dt, 0.8); pos.z -= p.speed * 0.6 * dt; turn(p, Math.PI, dt); setOpacity(p, Math.max(0, 1 - p.t / 1.1));
+          if (p.t >= 1.1) { p.state = 'inside'; p.t = rand(2.5, 7); p.g.visible = false; }
+        } else if (p.state === 'inside') {
+          p.t -= dt; if (p.t <= 0) { p.state = 'exit'; p.t = 0; p.tx = DOORX + rand(-0.4, 0.4); p.tz = rand(0.6, 2.6); pos.set(p.tx, 0, -2.5); p.g.visible = true; setOpacity(p, 0); p.g.rotation.y = 0; }
+        } else if (p.state === 'exit') {
+          p.t += dt; walkPose(p, dt); setOpacity(p, Math.min(1, p.t / 0.9));
+          if (step(p, p.tx, p.tz, dt, p.speed * 0.95)) { p.dir = Math.random() < 0.5 ? 1 : -1; p.state = 'walk'; p.willEnter = Math.random() < 0.25; p.enterX = pos.x + p.dir * rand(4, 9); setOpacity(p, 1); }
+        }
+      });
+      queue.forEach(function (q) {
+        q.ph += dt * 1.6; var u = q.g.userData;
+        q.g.position.y = Math.sin(q.ph) * 0.012; u.head.rotation.y = Math.sin(q.ph * 0.7) * 0.4; u.armR.rotation.x = Math.sin(q.ph) * 0.08;
+      });
+    }
+
+    /* camera + resize */
+    var pointer = { x: 0, y: 0 }, camX = 0;
+    host.addEventListener('pointermove', function (e) {
+      var r = host.getBoundingClientRect(); pointer.x = ((e.clientX - r.left) / r.width) * 2 - 1; pointer.y = ((e.clientY - r.top) / r.height) * 2 - 1;
+    });
+    host.addEventListener('pointerleave', function () { pointer.x = 0; pointer.y = 0; });
+    function resize() {
+      var w = host.clientWidth, h = host.clientHeight; if (!w || !h) return;
+      renderer.setSize(w, h, false); camera.aspect = w / h;
+      var halfW = 9.6, dist = 11.5, fov = 2 * Math.atan(halfW / camera.aspect / dist) * 180 / Math.PI;
+      camera.fov = Math.max(30, Math.min(52, fov)); camera.updateProjectionMatrix();
+    }
+    function aim(t) {
+      camX += (pointer.x * 1.3 + (reduce ? 0 : Math.sin(t * 0.18) * 0.7) - camX) * 0.05;
+      camera.position.set(camX, 3.2 - pointer.y * 0.25, 9.2); camera.lookAt(0, 2.0, -1.5);
+    }
+    if (window.ResizeObserver) new ResizeObserver(resize).observe(host); else window.addEventListener('resize', resize);
+    resize();
+
+    var clock = new T.Clock(), running = false, raf = 0;
+    function frame() {
+      if (!running) return;
+      var dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
+      update(dt); aim(t);
+      steams.forEach(function (sp) {
+        var k = (t * 0.22 + sp.userData.off) % 1;
+        sp.position.set(1.9 + Math.sin(k * 6 + sp.userData.off * 9) * 0.25, 5.4 + k * 1.6, -3.2); sp.scale.setScalar(0.5 + k * 1.5); sp.material.opacity = 0.55 * (1 - k);
+      });
+      renderer.render(scene, camera); raf = requestAnimationFrame(frame);
+    }
+    aim(0); renderer.render(scene, camera);
+    if (reduce) return;
+    if (window.IntersectionObserver) {
+      new IntersectionObserver(function (es) {
+        var vis = es[0].isIntersecting;
+        if (vis && !running) { running = true; clock.getDelta(); frame(); } else if (!vis) { running = false; cancelAnimationFrame(raf); }
+      }, { threshold: 0.05 }).observe(host);
+    } else { running = true; frame(); }
+  }
+  if (document.readyState === 'complete') init(); else window.addEventListener('load', init);
 })();
 </script>
 </body>
